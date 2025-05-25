@@ -64,10 +64,21 @@
             background-color: white;
         }
         
+        .front {
+            transform: rotateY(0deg);
+            background-color: #ffffff; /* Fondo blanco si la imagen no carga */
+        }
+        
+        .back {
+            transform: rotateY(180deg);
+            background-color: #ffffff; /* Fondo blanco si la imagen no carga */
+        }
+        
         .card img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Cambiado de 'cover' a 'contain' para mejor visualización */
+            position: absolute;
         }
         
         .flipped {
@@ -95,29 +106,17 @@
             font-size: 16px;
             gap: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .whatsapp-link:hover {
-            background-color: #128C7E;
-            transform: translateY(-2px);
         }
         
         .whatsapp-link i {
             font-size: 20px;
         }
         
-        @media (max-height: 700px) {
-            .card-container {
-                height: 45vh;
-                max-height: 180px;
-                margin-bottom: 20px;
-            }
-            
-            .whatsapp-link {
-                padding: 10px 20px;
-                font-size: 15px;
-            }
+        .fallback-text {
+            padding: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -126,10 +125,16 @@
     
     <div class="card-container" id="card">
         <div class="card front">
-            <img src="1.png" alt="Frente de la tarjeta">
+            <img src="1.png" alt="Frente de la tarjeta" onerror="this.style.display='none'; document.getElementById('front-fallback').style.display='block'">
+            <div id="front-fallback" class="fallback-text" style="display:none">
+                Imagen frontal no disponible
+            </div>
         </div>
         <div class="card back">
-            <img src="2.png" alt="Reverso de la tarjeta">
+            <img src="2.png" alt="Reverso de la tarjeta" onerror="this.style.display='none'; document.getElementById('back-fallback').style.display='block'">
+            <div id="back-fallback" class="fallback-text" style="display:none">
+                Imagen trasera no disponible
+            </div>
         </div>
     </div>
     
@@ -143,6 +148,33 @@
         const card = document.getElementById('card');
         let startX, moveX;
         const flipThreshold = 50;
+        
+        // Verificar si las imágenes existen
+        function checkImage(url, callback) {
+            const img = new Image();
+            img.onload = function() { callback(true); };
+            img.onerror = function() { callback(false); };
+            img.src = url;
+        }
+        
+        // Comprobar imágenes al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            checkImage('1.png', function(exists) {
+                if (!exists) {
+                    document.getElementById('front-fallback').style.display = 'block';
+                    const frontImg = document.querySelector('.front img');
+                    if (frontImg) frontImg.style.display = 'none';
+                }
+            });
+            
+            checkImage('2.png', function(exists) {
+                if (!exists) {
+                    document.getElementById('back-fallback').style.display = 'block';
+                    const backImg = document.querySelector('.back img');
+                    if (backImg) backImg.style.display = 'none';
+                }
+            });
+        });
         
         // Click/touch para girar
         card.addEventListener('click', flipCard);
